@@ -1,0 +1,31 @@
+{
+  "author": "amornchai.zoon@gmail.com",
+  "dependencies": {
+    "pebble-clay": "^1.0.2"
+  },
+  "keywords": [],
+  "name": "bitflyerprice",
+  "pebble": {
+    "displayName": "BitFlyerPrice",
+    "enableMultiJS": true,
+    "messageKeys": [
+      "ltp",
+      "action"
+    ],
+    "projectType": "native",
+    "resources": {
+      "media": []
+    },
+    "sdkVersion": "3",
+    "targetPlatforms": [
+      "aplite",
+      "basalt",
+      "chalk"
+    ],
+    "uuid": "18c6fee4-166a-4a74-86c1-54e0a5ba5630",
+    "watchapp": {
+      "watchface": true
+    }
+  },
+  "version": "1.0.0"
+}
