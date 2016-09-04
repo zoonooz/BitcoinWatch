@@ -10,7 +10,9 @@
     "enableMultiJS": true,
     "messageKeys": [
       "ltp",
-      "action"
+      "action",
+      "status",
+      "service"
     ],
     "projectType": "native",
     "resources": {
@@ -25,7 +27,8 @@
     "uuid": "18c6fee4-166a-4a74-86c1-54e0a5ba5630",
     "watchapp": {
       "watchface": true
-    }
+    },
+    "capabilities": [ "configurable" ]
   },
   "version": "1.0.0"
 }

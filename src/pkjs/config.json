@@ -1,0 +1,35 @@
+[
+  {
+    "type": "heading",
+    "defaultValue": "WatchFace Configuration"
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Service"
+      },
+      {
+        "type": "select",
+        "messageKey": "service",
+        "defaultValue": "coinbase",
+        "label": "Bitcoin price service",
+        "options": [
+          {
+            "label": "Coinbase",
+            "value": "coinbase"
+          },
+          {
+            "label": "Bitflyer",
+            "value": "bitflyer"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "submit",
+    "defaultValue": "Save Settings"
+  }
+]
