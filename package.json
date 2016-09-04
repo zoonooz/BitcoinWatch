@@ -1,12 +1,12 @@
 {
-  "author": "amornchai.zoon@gmail.com",
+  "author": "zoonref@gmail.com",
   "dependencies": {
     "pebble-clay": "^1.0.2"
   },
   "keywords": [],
-  "name": "bitflyerprice",
+  "name": "BitcoinWatch",
   "pebble": {
-    "displayName": "BitFlyerPrice",
+    "displayName": "BitcoinWatch",
     "enableMultiJS": true,
     "messageKeys": [
       "ltp",
@@ -22,7 +22,8 @@
     "targetPlatforms": [
       "aplite",
       "basalt",
-      "chalk"
+      "chalk",
+      "diorite"
     ],
     "uuid": "18c6fee4-166a-4a74-86c1-54e0a5ba5630",
     "watchapp": {

@@ -95,7 +95,7 @@ static void main_window_load(Window *window) {
 	// detail text layer
   s_title_layer = text_layer_create(GRect(0, bounds.size.h / 2 + 25, bounds.size.w, 20));
   text_layer_set_background_color(s_title_layer, COLOR_BG);
-  text_layer_set_text_color(s_title_layer, COLOR_SELL);
+  text_layer_set_text_color(s_title_layer, COLOR_FALLBACK(COLOR_SELL, GColorWhite));
   text_layer_set_text_alignment(s_title_layer, GTextAlignmentCenter);
   text_layer_set_text(s_title_layer, "connecting");
   text_layer_set_font(s_title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
