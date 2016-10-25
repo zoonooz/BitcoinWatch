@@ -9,33 +9,33 @@ static TextLayer *s_price_layer, *s_time_layer, *s_title_layer;
 
 // Write message to buffer & send
 static void refresh(void){
-	DictionaryIterator *iter;
+  DictionaryIterator *iter;
 
-	app_message_outbox_begin(&iter);
-	dict_write_cstring(iter, MESSAGE_KEY_action, "refresh");
+  app_message_outbox_begin(&iter);
+  dict_write_cstring(iter, MESSAGE_KEY_action, "refresh");
 
-	dict_write_end(iter);
+  dict_write_end(iter);
   app_message_outbox_send();
 }
 
 // Called when a message is received from PebbleKitJS
 static void in_received_handler(DictionaryIterator *received, void *context) {
-	Tuple *ltp_tuple = dict_find(received, MESSAGE_KEY_ltp);
-	if(ltp_tuple) {
-		char *price = ltp_tuple->value->cstring;
-		// Use a static buffer to store the string for display
+  Tuple *ltp_tuple = dict_find(received, MESSAGE_KEY_ltp);
+  if(ltp_tuple) {
+    char *price = ltp_tuple->value->cstring;
+    // Use a static buffer to store the string for display
     static char s_buffer[30];
     snprintf(s_buffer, sizeof(s_buffer), "%s", price);
-		text_layer_set_text(s_price_layer, s_buffer);
+    text_layer_set_text(s_price_layer, s_buffer);
   }
 
-	Tuple *status_tuple = dict_find(received, MESSAGE_KEY_status);
-	if(status_tuple) {
+  Tuple *status_tuple = dict_find(received, MESSAGE_KEY_status);
+  if(status_tuple) {
     char *status = status_tuple->value->cstring;
-		// Use a static buffer to store the string for display
+    // Use a static buffer to store the string for display
     static char s_buffer[30];
     snprintf(s_buffer, sizeof(s_buffer), "%s", status);
-		text_layer_set_text(s_title_layer, s_buffer);
+    text_layer_set_text(s_title_layer, s_buffer);
   }
 }
 
@@ -64,7 +64,7 @@ static void update_time() {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   refresh();
-	update_time();
+  update_time();
 }
 
 // ------------------- window event ----------------------
@@ -85,14 +85,14 @@ static void main_window_load(Window *window) {
   text_layer_set_font(s_price_layer, fonts_get_system_font(FONT_KEY_LECO_36_BOLD_NUMBERS));
   text_layer_set_text_alignment(s_price_layer, GTextAlignmentCenter);
 
-	// time
+  // time
   s_time_layer = text_layer_create(GRect(0, bounds.size.h / 2 - 50, bounds.size.w, 20));
   text_layer_set_background_color(s_time_layer, COLOR_BG);
   text_layer_set_text_color(s_time_layer, COLOR_BUY);
   text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 
-	// detail text layer
+  // detail text layer
   s_title_layer = text_layer_create(GRect(0, bounds.size.h / 2 + 25, bounds.size.w, 20));
   text_layer_set_background_color(s_title_layer, COLOR_BG);
   text_layer_set_text_color(s_title_layer, COLOR_FALLBACK(COLOR_SELL, GColorWhite));
@@ -102,7 +102,7 @@ static void main_window_load(Window *window) {
 
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_price_layer));
-	layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
+  layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
   layer_add_child(window_layer, text_layer_get_layer(s_title_layer));
 
   // Register with TickTimerService
@@ -112,13 +112,13 @@ static void main_window_load(Window *window) {
 static void main_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_price_layer);
-	text_layer_destroy(s_time_layer);
+  text_layer_destroy(s_time_layer);
 }
 
 // ==============================================
 
 static void init(void) {
-	s_window = window_create();
+  s_window = window_create();
 
   // Set handlers to manage the elements inside the Window
   window_set_window_handlers(s_window, (WindowHandlers) {
@@ -126,29 +126,29 @@ static void init(void) {
     .unload = main_window_unload
   });
 
-	window_stack_push(s_window, true);
+  window_stack_push(s_window, true);
 
-	// Register AppMessage handlers
-	app_message_register_inbox_received(in_received_handler);
-	app_message_register_inbox_dropped(in_dropped_handler);
-	app_message_register_outbox_failed(out_failed_handler);
+  // Register AppMessage handlers
+  app_message_register_inbox_received(in_received_handler);
+  app_message_register_inbox_dropped(in_dropped_handler);
+  app_message_register_outbox_failed(out_failed_handler);
 
   // Initialize AppMessage inbox and outbox buffers with a suitable size
   const int inbox_size = 128;
   const int outbox_size = 128;
-	app_message_open(inbox_size, outbox_size);
+  app_message_open(inbox_size, outbox_size);
 
-	// Set the current time
+  // Set the current time
   update_time();
 }
 
 static void deinit(void) {
-	app_message_deregister_callbacks();
-	window_destroy(s_window);
+  app_message_deregister_callbacks();
+  window_destroy(s_window);
 }
 
 int main( void ) {
-	init();
-	app_event_loop();
-	deinit();
+  init();
+  app_event_loop();
+  deinit();
 }
