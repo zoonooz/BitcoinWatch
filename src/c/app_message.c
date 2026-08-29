@@ -2,10 +2,46 @@
 
 static Window *s_window;
 static TextLayer *s_price_layer, *s_time_layer, *s_title_layer;
+static GRect s_price_bounds;
+static int16_t s_price_center_y;  // Vertical center for price text
 
 #define COLOR_BG GColorFromRGB(31, 37, 44)
 #define COLOR_SELL GColorFromRGB(247, 105, 77)
 #define COLOR_BUY GColorFromRGB(214, 161, 36)
+
+// Font options for price display (largest to smallest)
+static const char* s_price_fonts[] = {
+  FONT_KEY_LECO_36_BOLD_NUMBERS,
+  FONT_KEY_LECO_32_BOLD_NUMBERS,
+  FONT_KEY_LECO_20_BOLD_NUMBERS
+};
+#define NUM_PRICE_FONTS 3
+
+// Set price text with auto-sizing font and vertical centering
+static void set_price_text(const char *text) {
+  GFont font = NULL;
+  GSize text_size;
+  GRect measure_bound = GRect(0, 0, 10000, 50);
+
+  // Try each font from largest to smallest until text fits
+  for (int i = 0; i < NUM_PRICE_FONTS; i++) {
+    font = fonts_get_system_font(s_price_fonts[i]);
+    text_size = graphics_text_layout_get_content_size(
+      text, font, measure_bound, GTextOverflowModeFill, GTextAlignmentCenter);
+
+    if (text_size.w <= s_price_bounds.size.w) {
+      break;  // This font fits
+    }
+  }
+
+  // Vertically center the text by adjusting the layer position
+  int16_t new_y = s_price_center_y - (text_size.h / 2);
+  GRect new_frame = GRect(s_price_bounds.origin.x, new_y, s_price_bounds.size.w, text_size.h);
+  layer_set_frame(text_layer_get_layer(s_price_layer), new_frame);
+
+  text_layer_set_font(s_price_layer, font);
+  text_layer_set_text(s_price_layer, text);
+}
 
 // Write message to buffer & send
 static void refresh(void){
@@ -20,13 +56,13 @@ static void refresh(void){
 
 // Called when a message is received from PebbleKitJS
 static void in_received_handler(DictionaryIterator *received, void *context) {
-  Tuple *ltp_tuple = dict_find(received, MESSAGE_KEY_ltp);
+  Tuple *ltp_tuple = dict_find(received, MESSAGE_KEY_price);
   if(ltp_tuple) {
     char *price = ltp_tuple->value->cstring;
     // Use a static buffer to store the string for display
     static char s_buffer[30];
     snprintf(s_buffer, sizeof(s_buffer), "%s", price);
-    text_layer_set_text(s_price_layer, s_buffer);
+    set_price_text(s_buffer);
   }
 
   Tuple *status_tuple = dict_find(received, MESSAGE_KEY_status);
@@ -78,12 +114,14 @@ static void main_window_load(Window *window) {
   window_set_background_color(window, COLOR_BG);
 
   // Create the TextLayer with specific bounds
-  s_price_layer = text_layer_create(GRect(0, bounds.size.h / 2 - 25, bounds.size.w, 50));
+  s_price_center_y = bounds.size.h / 2;  // Store vertical center
+  s_price_bounds = GRect(0, bounds.size.h / 2 - 25, bounds.size.w, 50);
+  s_price_layer = text_layer_create(s_price_bounds);
   text_layer_set_background_color(s_price_layer, COLOR_BG);
   text_layer_set_text_color(s_price_layer, GColorWhite);
-  text_layer_set_text(s_price_layer, "-");
-  text_layer_set_font(s_price_layer, fonts_get_system_font(FONT_KEY_LECO_36_BOLD_NUMBERS));
   text_layer_set_text_alignment(s_price_layer, GTextAlignmentCenter);
+  text_layer_set_overflow_mode(s_price_layer, GTextOverflowModeFill); 
+  set_price_text("-");
 
   // time
   s_time_layer = text_layer_create(GRect(0, bounds.size.h / 2 - 50, bounds.size.w, 20));

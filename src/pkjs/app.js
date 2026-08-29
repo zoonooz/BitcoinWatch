@@ -29,10 +29,10 @@ request.onload = function() {
     // Read data
     var dict = {};
     if (currentService == "bitflyer") {
-      dict[keys.ltp] = json.ltp.toString();
+      dict[keys.price] = parseInt(json.ltp).toString();
       dict[keys.status] = "BTC/JPY";
     } else {
-      dict[keys.ltp] = json.data.amount;
+      dict[keys.price] = parseInt(json.data.amount).toString();
       dict[keys.status] = "BTC/USD";
     }
 

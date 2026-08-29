@@ -9,10 +9,9 @@
     "displayName": "BitcoinWatch",
     "enableMultiJS": true,
     "messageKeys": [
-      "ltp",
-      "action",
+      "price",
       "status",
-      "service"
+      "action"
     ],
     "projectType": "native",
     "resources": {
@@ -23,7 +22,8 @@
       "aplite",
       "basalt",
       "chalk",
-      "diorite"
+      "diorite",
+      "emery"
     ],
     "uuid": "18c6fee4-166a-4a74-86c1-54e0a5ba5630",
     "watchapp": {
