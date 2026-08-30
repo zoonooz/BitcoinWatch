@@ -1,6 +1,13 @@
-// bit flyer api
-var URL_BITFLYER = "https://api.bitflyer.jp/v1/ticker";
-var URL_COINBASE = "https://api.coinbase.com/v2/prices/spot?currency=USD";
+// apis
+var apis = {}
+apis["binance"] = {
+  "url": "https://api.binance.com/api/v3/ticker/price?symbol={base}{quote}",
+  "responsePath": "price"
+}
+apis["coinbase"] = {
+  "url": "https://api.coinbase.com/v2/prices/{base}-{quote}/spot",
+  "responsePath": "data.amount"
+}
 
 // Require the keys' numeric values.
 var keys = require('message_keys');
@@ -10,7 +17,9 @@ var Clay = require('pebble-clay');
 var clayConfig = require('./config.json');
 var clay = new Clay(clayConfig, null, { autoHandleEvents: false });
 
-var currentService = "coinbase";
+var currentService = "binance";
+var currentBase = "BTC";
+var currentQuote = "USD";
 
 // ========================================================
 
@@ -19,37 +28,41 @@ var request = new XMLHttpRequest();
 
 // Specify the callback for when the request is completed
 request.onload = function() {
-  // The request was successfully completed!
   console.log('Got response: ' + this.responseText);
 
   try {
-    // Transform in to JSON
     var json = JSON.parse(this.responseText);
+    var api = apis[currentService];
+    var price = parseFloat(getByPath(json, api.responsePath));
 
-    // Read data
     var dict = {};
-    if (currentService == "bitflyer") {
-      dict[keys.price] = parseInt(json.ltp).toString();
-      dict[keys.status] = "BTC/JPY";
-    } else {
-      dict[keys.price] = parseInt(json.data.amount).toString();
-      dict[keys.status] = "BTC/USD";
-    }
+    dict[keys.price] = Math.round(price).toString();
+    dict[keys.status] = currentBase + "/" + currentQuote;
 
-    // Send the object
     Pebble.sendAppMessage(dict, function() {
       console.log('Message sent successfully: ' + JSON.stringify(dict));
     }, function(e) {
       console.log('Message failed: ' + JSON.stringify(e));
     });
   } catch(err) {
-    console.log('Error parsing JSON response!');
+    console.log('Error parsing JSON response: ' + err);
   }
 };
 
+// Get nested property from object using dot notation path
+function getByPath(obj, path) {
+  return path.split('.').reduce(function(o, key) {
+    return o && o[key];
+  }, obj);
+}
+
 function getLatestPrice() {
-  // Send the request
-  var url = currentService == "bitflyer" ? URL_BITFLYER : URL_COINBASE;
+  var api = apis[currentService];
+  var url = api.url
+    .replace("{base}", currentBase)
+    .replace("{quote}", currentQuote);
+
+  console.log('Fetching: ' + url);
   request.open("GET", url);
   request.send();
 }
@@ -59,7 +72,10 @@ function getLatestPrice() {
 // Called when JS is ready
 Pebble.addEventListener("ready", function(e) {
   console.log("JS is ready!");
-  currentService = localStorage.getItem('service');
+  var storedService = localStorage.getItem('service');
+  currentService = (storedService && apis[storedService]) ? storedService : "binance";
+  currentBase = localStorage.getItem('base') || "BTC";
+  currentQuote = localStorage.getItem('quote') || "USD";
   getLatestPrice();
 });
 
@@ -83,9 +99,18 @@ Pebble.addEventListener('webviewclosed', function(e) {
   if (e && !e.response) {
     return;
   }
+  console.log("Received settings: " + e.response);
   // Get the keys and values from each config item
   var dict = clay.getSettings(e.response);
-  currentService = dict[keys.service];
+
+  var newService = dict[keys.service];
+  currentService = (newService && apis[newService]) ? newService : "binance";
+  currentBase = dict[keys.currencyBase].toUpperCase() || "BTC";
+  currentQuote = dict[keys.currencyQuote].toUpperCase() || "USD";
+
   localStorage.setItem('service', currentService);
+  localStorage.setItem('base', currentBase);
+  localStorage.setItem('quote', currentQuote);
+
   getLatestPrice();
 });

@@ -21,10 +21,28 @@
             "value": "coinbase"
           },
           {
-            "label": "Bitflyer",
-            "value": "bitflyer"
+            "label": "Binance",
+            "value": "binance"
           }
         ]
+      },
+      {
+        "type": "input",
+        "messageKey": "currencyBase",
+        "defaultValue": "BTC",
+        "label": "Base",
+        "attributes": {                                                                                                                            
+          "style": "text-transform: uppercase"                                                                                                     
+        }   
+      },
+      {
+        "type": "input",
+        "messageKey": "currencyQuote",
+        "defaultValue": "USD",
+        "label": "Quote",
+        "attributes": {                                                                                                                            
+          "style": "text-transform: uppercase"                                                                                                     
+        }    
       }
     ]
   },

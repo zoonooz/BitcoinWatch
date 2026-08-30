@@ -11,7 +11,10 @@
     "messageKeys": [
       "price",
       "status",
-      "action"
+      "action",
+      "service",
+      "currencyBase",
+      "currencyQuote"
     ],
     "projectType": "native",
     "resources": {
