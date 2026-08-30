@@ -10,25 +10,29 @@ static int16_t s_price_center_y;  // Vertical center for price text
 #define COLOR_BUY GColorFromRGB(214, 161, 36)
 
 // Font options for price display (largest to smallest)
+
 static const char* s_price_fonts[] = {
+  FONT_KEY_LECO_42_NUMBERS,
+  FONT_KEY_LECO_38_BOLD_NUMBERS,
   FONT_KEY_LECO_36_BOLD_NUMBERS,
   FONT_KEY_LECO_32_BOLD_NUMBERS,
   FONT_KEY_LECO_20_BOLD_NUMBERS
 };
-#define NUM_PRICE_FONTS 3
+#define NUM_PRICE_FONTS 5
 
 // Set price text with auto-sizing font and vertical centering
 static void set_price_text(const char *text) {
   GFont font = NULL;
   GSize text_size;
-  GRect measure_bound = GRect(0, 0, 10000, 50);
+  GRect measure_bound = GRect(0, 0, 10000, 10000);
 
   // Try each font from largest to smallest until text fits
   for (int i = 0; i < NUM_PRICE_FONTS; i++) {
     font = fonts_get_system_font(s_price_fonts[i]);
     text_size = graphics_text_layout_get_content_size(
       text, font, measure_bound, GTextOverflowModeFill, GTextAlignmentCenter);
-
+    
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "font index %d and measure width %d", i, text_size.w);
     if (text_size.w <= s_price_bounds.size.w) {
       break;  // This font fits
     }
@@ -124,19 +128,21 @@ static void main_window_load(Window *window) {
   set_price_text("-");
 
   // time
-  s_time_layer = text_layer_create(GRect(0, bounds.size.h / 2 - 50, bounds.size.w, 20));
+  char *time_font = bounds.size.w > 180 ? FONT_KEY_LECO_26_BOLD_NUMBERS_AM_PM : FONT_KEY_LECO_20_BOLD_NUMBERS;
+  s_time_layer = text_layer_create(GRect(0, bounds.size.h * 0.2, bounds.size.w, 30));
   text_layer_set_background_color(s_time_layer, COLOR_BG);
   text_layer_set_text_color(s_time_layer, COLOR_BUY);
-  text_layer_set_font(s_time_layer, fonts_get_system_font(FONT_KEY_LECO_20_BOLD_NUMBERS));
+  text_layer_set_font(s_time_layer, fonts_get_system_font(time_font));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 
   // detail text layer
-  s_title_layer = text_layer_create(GRect(0, bounds.size.h / 2 + 25, bounds.size.w, 20));
+  char *detail_font = bounds.size.w > 180 ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_14_BOLD;
+  s_title_layer = text_layer_create(GRect(0, bounds.size.h * 0.7, bounds.size.w, 30));
   text_layer_set_background_color(s_title_layer, COLOR_BG);
   text_layer_set_text_color(s_title_layer, COLOR_FALLBACK(COLOR_SELL, GColorWhite));
   text_layer_set_text_alignment(s_title_layer, GTextAlignmentCenter);
   text_layer_set_text(s_title_layer, "connecting");
-  text_layer_set_font(s_title_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
+  text_layer_set_font(s_title_layer, fonts_get_system_font(detail_font));
 
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_layer, text_layer_get_layer(s_price_layer));
