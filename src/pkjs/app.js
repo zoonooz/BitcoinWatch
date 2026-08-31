@@ -33,10 +33,10 @@ request.onload = function() {
   try {
     var json = JSON.parse(this.responseText);
     var api = apis[currentService];
-    var price = parseFloat(getByPath(json, api.responsePath));
+    var rawPrice = String(getByPath(json, api.responsePath));
 
     var dict = {};
-    dict[keys.price] = Math.round(price).toString();
+    dict[keys.price] = formatPrice(rawPrice);
     dict[keys.status] = currentBase + "/" + currentQuote;
 
     Pebble.sendAppMessage(dict, function() {
@@ -54,6 +54,41 @@ function getByPath(obj, path) {
   return path.split('.').reduce(function(o, key) {
     return o && o[key];
   }, obj);
+}
+
+// Format a raw price string for display.
+// - If the integer part has more than 3 digits (price >= 1000), the
+//   fraction is hidden and the price is rounded to the nearest integer.
+// - Otherwise, the fraction is shown starting from its first non-zero
+//   digit and continuing until (but not including) the next zero digit.
+//   e.g. "0.000055101" -> "0.0000551", "0.0101" -> "0.01"
+function formatPrice(rawPrice) {
+  var parts = rawPrice.split(".");
+  var intPart = parts[0] || "0";
+  var fracPart = parts[1] || "";
+
+  if (intPart.length > 3) {
+    return Math.round(parseFloat(rawPrice)).toString();
+  }
+
+  var firstNonZero = -1;
+  for (var i = 0; i < fracPart.length; i++) {
+    if (fracPart.charAt(i) !== "0") {
+      firstNonZero = i;
+      break;
+    }
+  }
+
+  if (firstNonZero === -1) {
+    return intPart;
+  }
+
+  var end = firstNonZero;
+  while (end < fracPart.length && fracPart.charAt(end) !== "0") {
+    end++;
+  }
+
+  return intPart + "." + fracPart.substring(0, end);
 }
 
 function getLatestPrice() {
