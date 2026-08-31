@@ -4,9 +4,9 @@
     "pebble-clay": "^1.0.2"
   },
   "keywords": [],
-  "name": "BitcoinWatch",
+  "name": "BitcoinWatch2",
   "pebble": {
-    "displayName": "BitcoinWatch",
+    "displayName": "BitcoinWatch2",
     "enableMultiJS": true,
     "messageKeys": [
       "price",
@@ -28,11 +28,11 @@
       "diorite",
       "emery"
     ],
-    "uuid": "18c6fee4-166a-4a74-86c1-54e0a5ba5630",
+    "uuid": "cc505d9e-2b61-4028-bb50-5cd864f323f2",
     "watchapp": {
       "watchface": true
     },
     "capabilities": [ "configurable" ]
   },
-  "version": "1.0.0"
+  "version": "2.0.0"
 }
