@@ -18,7 +18,9 @@
       "chart",
       "chartEnabled",
       "chartRange",
-      "chartStyle"
+      "chartStyle",
+      "colorPrimary",
+      "colorSecondary"
     ],
     "projectType": "native",
     "resources": {
@@ -52,5 +54,5 @@
       }
     ]
   },
-  "version": "2.0.1"
+  "version": "2.1.2"
 }

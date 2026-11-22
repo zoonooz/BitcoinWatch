@@ -84,6 +84,30 @@
     ]
   },
   {
+    "type": "section",
+    "capabilities": ["COLOR"],
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Colors"
+      },
+      {
+        "type": "color",
+        "messageKey": "colorPrimary",
+        "defaultValue": "FFAA00",
+        "label": "Primary color",
+        "description": "Time and rising price on the chart"
+      },
+      {
+        "type": "color",
+        "messageKey": "colorSecondary",
+        "defaultValue": "FF5555",
+        "label": "Secondary color",
+        "description": "Pair label and falling price on the chart"
+      }
+    ]
+  },
+  {
     "type": "submit",
     "defaultValue": "Save Settings"
   }

@@ -13,6 +13,8 @@ apis["coinbase"] = {
 // oldest first as {o, h, l, c}.
 // Binance klines: oldest first, [openTime, open, high, low, close, ...].
 // Coinbase Exchange candles: newest first, [time, low, high, open, close, volume].
+// Coinbase has no limit parameter and returns ~300 candles by default, so we
+// ask for just the time window we need with start/end.
 var chartApis = {
   "binance": {
     "url": "https://api.binance.com/api/v3/klines?symbol={base}{quote}&interval={interval}&limit={limit}",
@@ -23,7 +25,7 @@ var chartApis = {
     }
   },
   "coinbase": {
-    "url": "https://api.exchange.coinbase.com/products/{base}-{quote}/candles?granularity={granularity}",
+    "url": "https://api.exchange.coinbase.com/products/{base}-{quote}/candles?granularity={granularity}&start={start}&end={end}",
     "parse": function(json) {
       return json.map(function(c) {
         return { o: c[3], h: c[2], l: c[1], c: c[4] };
@@ -267,15 +269,39 @@ function sendChartEnabled() {
   sendToWatch(dict);
 }
 
+// Clay returns colors as 0xRRGGBB ints; the watch converts with GColorFromHEX.
+// Color items are hidden on black & white watches, so they may be missing.
+function normalizeColor(value) {
+  var color = typeof value === "string" ? parseInt(value.replace(/^(#|0x)/i, ""), 16) : value;
+  return (typeof color === "number" && isFinite(color)) ? color & 0xFFFFFF : null;
+}
+
+function sendColors(settings) {
+  var primary = normalizeColor(settings[keys.colorPrimary]);
+  var secondary = normalizeColor(settings[keys.colorSecondary]);
+  if (primary === null && secondary === null) {
+    return;
+  }
+  var dict = {};
+  if (primary !== null) dict[keys.colorPrimary] = primary;
+  if (secondary !== null) dict[keys.colorSecondary] = secondary;
+  sendToWatch(dict);
+}
+
 function getChart() {
   var range = chartRanges[chartRange];
   var api = chartApis[currentService];
+  // One extra candle of margin; the parsed result is trimmed to range.count.
+  var end = new Date();
+  var start = new Date(end.getTime() - (range.count + 1) * range.granularity * 1000);
   var url = api.url
     .replace("{base}", encodeURIComponent(currentBase))
     .replace("{quote}", encodeURIComponent(currentQuote))
     .replace("{interval}", range.interval)
     .replace("{limit}", range.count)
-    .replace("{granularity}", range.granularity);
+    .replace("{granularity}", range.granularity)
+    .replace("{start}", encodeURIComponent(start.toISOString()))
+    .replace("{end}", encodeURIComponent(end.toISOString()));
 
   console.log('Fetching chart: ' + url);
 
@@ -406,6 +432,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   localStorage.setItem('chartRange', chartRange);
   localStorage.setItem('chartStyle', chartStyle);
 
+  sendColors(dict);
   sendChartEnabled();
   refreshAll(true);
 });

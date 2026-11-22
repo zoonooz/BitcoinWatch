@@ -7,13 +7,19 @@ static GRect s_price_bounds;
 static int16_t s_price_center_y;  // Vertical center for price text
 
 #define COLOR_BG GColorFromRGB(31, 37, 44)
-#define COLOR_SELL GColorFromRGB(247, 105, 77)
-#define COLOR_BUY GColorFromRGB(214, 161, 36)
+// Accent colors, configurable from the phone (0xRRGGBB).
+// Primary: time and rising chart. Secondary: pair label and falling chart.
+#define DEFAULT_COLOR_PRIMARY 0xFFAA00
+#define DEFAULT_COLOR_SECONDARY 0xFF5555
+static GColor s_color_primary;
+static GColor s_color_secondary;
 
 // Persistent storage keys
 #define PERSIST_CHART_ENABLED 1
 #define PERSIST_CHART_DATA 2
 #define PERSIST_CHART_STYLE 3
+#define PERSIST_COLOR_PRIMARY 4
+#define PERSIST_COLOR_SECONDARY 5
 
 // Chart state: values are scaled 0..255 by the phone.
 // Line style: one close price per byte.
@@ -76,9 +82,9 @@ static void draw_line_chart(GContext *ctx, GRect bounds) {
   int16_t h = bounds.size.h - 2;  // leave room for the 2px stroke
 
 #ifdef PBL_COLOR
-  // Gold when the price rose over the range, red-orange when it fell
+  // Primary when the price rose over the range, secondary when it fell
   bool rising = s_chart_points[s_chart_count - 1] >= s_chart_points[0];
-  graphics_context_set_stroke_color(ctx, rising ? COLOR_BUY : COLOR_SELL);
+  graphics_context_set_stroke_color(ctx, rising ? s_color_primary : s_color_secondary);
 #else
   graphics_context_set_stroke_color(ctx, GColorWhite);
 #endif
@@ -129,7 +135,7 @@ static void draw_candle_chart(GContext *ctx, GRect bounds) {
     GRect body = GRect(x, y_top, body_w, y_bottom - y_top + 1);
 
 #ifdef PBL_COLOR
-    GColor color = rising ? COLOR_BUY : COLOR_SELL;
+    GColor color = rising ? s_color_primary : s_color_secondary;
     graphics_context_set_stroke_color(ctx, color);
     graphics_context_set_fill_color(ctx, color);
     graphics_draw_line(ctx, GPoint(wick_x, y_high), GPoint(wick_x, y_low));
@@ -181,6 +187,13 @@ static void apply_layout(void) {
   set_price_text(s_price_text);
 }
 
+// Apply accent colors to the labels and redraw the chart.
+static void apply_colors(void) {
+  text_layer_set_text_color(s_time_layer, COLOR_FALLBACK(s_color_primary, GColorWhite));
+  text_layer_set_text_color(s_title_layer, COLOR_FALLBACK(s_color_secondary, GColorWhite));
+  layer_mark_dirty(s_chart_layer);
+}
+
 // ------------------- messaging ----------------------
 
 // Write message to buffer & send
@@ -221,6 +234,20 @@ static void in_received_handler(DictionaryIterator *received, void *context) {
       persist_write_bool(PERSIST_CHART_ENABLED, enabled);
       apply_layout();
     }
+  }
+
+  Tuple *primary_tuple = dict_find(received, MESSAGE_KEY_colorPrimary);
+  Tuple *secondary_tuple = dict_find(received, MESSAGE_KEY_colorSecondary);
+  if (primary_tuple) {
+    s_color_primary = GColorFromHEX(primary_tuple->value->int32);
+    persist_write_int(PERSIST_COLOR_PRIMARY, primary_tuple->value->int32);
+  }
+  if (secondary_tuple) {
+    s_color_secondary = GColorFromHEX(secondary_tuple->value->int32);
+    persist_write_int(PERSIST_COLOR_SECONDARY, secondary_tuple->value->int32);
+  }
+  if (primary_tuple || secondary_tuple) {
+    apply_colors();
   }
 
   // Style arrives together with the chart data it describes
@@ -294,7 +321,6 @@ static void main_window_load(Window *window) {
   char *time_font = bounds.size.w > 180 ? FONT_KEY_LECO_26_BOLD_NUMBERS_AM_PM : FONT_KEY_LECO_20_BOLD_NUMBERS;
   s_time_layer = text_layer_create(GRect(0, bounds.size.h * 0.2, bounds.size.w, 30));
   text_layer_set_background_color(s_time_layer, GColorClear);
-  text_layer_set_text_color(s_time_layer, COLOR_FALLBACK(COLOR_BUY, GColorWhite));
   text_layer_set_font(s_time_layer, fonts_get_system_font(time_font));
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 
@@ -302,7 +328,6 @@ static void main_window_load(Window *window) {
   char *detail_font = bounds.size.w > 180 ? FONT_KEY_GOTHIC_18_BOLD : FONT_KEY_GOTHIC_14_BOLD;
   s_title_layer = text_layer_create(GRect(0, bounds.size.h * 0.7, bounds.size.w, 30));
   text_layer_set_background_color(s_title_layer, GColorClear);
-  text_layer_set_text_color(s_title_layer, COLOR_FALLBACK(COLOR_SELL, GColorWhite));
   text_layer_set_text_alignment(s_title_layer, GTextAlignmentCenter);
   text_layer_set_text(s_title_layer, "connecting");
   text_layer_set_font(s_title_layer, fonts_get_system_font(detail_font));
@@ -317,6 +342,7 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_title_layer));
   layer_add_child(window_layer, s_chart_layer);
 
+  apply_colors();
   apply_layout();
 
   // Register with TickTimerService
@@ -334,6 +360,11 @@ static void main_window_unload(Window *window) {
 // ==============================================
 
 static void init(void) {
+  s_color_primary = GColorFromHEX(persist_exists(PERSIST_COLOR_PRIMARY)
+    ? persist_read_int(PERSIST_COLOR_PRIMARY) : DEFAULT_COLOR_PRIMARY);
+  s_color_secondary = GColorFromHEX(persist_exists(PERSIST_COLOR_SECONDARY)
+    ? persist_read_int(PERSIST_COLOR_SECONDARY) : DEFAULT_COLOR_SECONDARY);
+
   // Restore chart state so it shows immediately on launch
   if (persist_exists(PERSIST_CHART_ENABLED)) {
     s_chart_enabled = persist_read_bool(PERSIST_CHART_ENABLED);
