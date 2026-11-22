@@ -14,7 +14,7 @@
         "type": "select",
         "messageKey": "service",
         "defaultValue": "coinbase",
-        "label": "Bitcoin price service",
+        "label": "Price service",
         "options": [
           {
             "label": "Coinbase",
@@ -43,6 +43,43 @@
         "attributes": {                                                                                                                            
           "style": "text-transform: uppercase"                                                                                                     
         }    
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Chart"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "chartEnabled",
+        "label": "Show price chart",
+        "defaultValue": true
+      },
+      {
+        "type": "select",
+        "messageKey": "chartRange",
+        "defaultValue": "24h",
+        "label": "Time range",
+        "options": [
+          { "label": "1 hour", "value": "1h" },
+          { "label": "6 hours", "value": "6h" },
+          { "label": "24 hours", "value": "24h" },
+          { "label": "7 days", "value": "7d" }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "chartStyle",
+        "defaultValue": "line",
+        "label": "Chart style",
+        "options": [
+          { "label": "Line", "value": "line" },
+          { "label": "Candles", "value": "candles" }
+        ]
       }
     ]
   },
